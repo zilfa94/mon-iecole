@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "build": "prisma generate && tsc",
+    "build": "npx prisma db push && prisma generate && tsc",
     "start": "node dist/src/server.js",
     "prisma": "prisma",
     "seed": "ts-node prisma/seed.ts"

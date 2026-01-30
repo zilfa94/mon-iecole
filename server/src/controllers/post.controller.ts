@@ -127,8 +127,18 @@ export class PostController {
                 // Let's default to: If no filter, see ALL posts (simple).
             }
 
+            // Pagination
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 20;
+            const skip = (page - 1) * limit;
+
+            // Get total count for pagination metadata
+            const total = await prisma.post.count({ where: whereClause });
+
             const posts = await prisma.post.findMany({
                 where: whereClause,
+                skip,
+                take: limit,
                 include: {
                     author: {
                         select: {
@@ -161,7 +171,17 @@ export class PostController {
                     { createdAt: 'desc' }
                 ]
             });
-            return res.json(posts);
+
+            return res.json({
+                posts,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                    hasMore: page < Math.ceil(total / limit)
+                }
+            });
         } catch (error) {
             console.error('List posts error:', error);
             return res.status(500).json({ error: 'Internal server error' });

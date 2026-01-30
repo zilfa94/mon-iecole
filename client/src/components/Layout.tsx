@@ -69,7 +69,7 @@ export function Layout() {
                                 to="/app/messages"
                                 icon={Mail}
                                 active={isActive('/app/messages')}
-                                badge={unreadData?.count}
+                                badge={unreadData?.total}
                             />
                         )}
                     </div>

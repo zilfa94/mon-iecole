@@ -23,13 +23,48 @@ export class PostController {
             // 3. Get uploaded files from middleware (if any)
             const uploadedFiles = (req as any).uploadedFiles || [];
 
-            // 4. Create post with attachments
+            // 4. Strict Security Check for Class Scoping
+            // We must verify that the user is allowed to post to this specific classId
+            if (classId) {
+                const targetClassId = parseInt(String(classId));
+
+                // Fetch latest user data with relations to verify permissions
+                const userWithPermissions = await prisma.user.findUnique({
+                    where: { id: req.user!.id },
+                    include: {
+                        teachingClasses: true
+                    }
+                });
+
+                if (!userWithPermissions) {
+                    return res.status(401).json({ error: 'User not found' });
+                }
+
+                if (req.user!.role === 'STUDENT') {
+                    if (userWithPermissions.classId !== targetClassId) {
+                        return res.status(403).json({ error: 'Students can only post to their own class' });
+                    }
+                }
+
+                if (req.user!.role === 'PROFESSOR') {
+                    const isTeachingClass = userWithPermissions.teachingClasses.some(
+                        tc => tc.classId === targetClassId
+                    );
+                    if (!isTeachingClass) {
+                        return res.status(403).json({ error: 'Professors can only post to classes they teach' });
+                    }
+                }
+
+                // DIRECTION is allowed to post everywhere
+            }
+
+            // 5. Create post with attachments
             const postData: any = {
                 authorId: req.user!.id,
                 content,
                 type, // Validated above
                 isPinned: isPinned || false,
-                classId: classId ? parseInt(classId) : null
+                classId: classId ? parseInt(String(classId)) : null
             };
 
             // Only add attachments if files were uploaded

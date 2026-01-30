@@ -177,4 +177,16 @@ Toutes les fonctionnalités principales sont implémentées et déployées :
     - **Fix Critique TypeScript** : Standardisation du parsing des IDs (`parseInt(String(req.params.id))`) pour éviter les crashs sur `req.params`.
     - Prisma : Résolution des conflits de types (`@ts-ignore` temporaires supprimés ou documentés).
 
+### 2026-01-31 (Sprint 1 - Unread Messages)
+✅ **Fait : Badges de Messages Non-lus**
+- [x] **Schema DB** : Ajout de `lastReadMessageId` à `ThreadRead` (Migration effectuée).
+- [x] **Backend API** :
+    - `GET /threads/unread` -> Renvoie { total, byThread }.
+    - `POST /threads/:id/read` -> Marque comme lu jusqu'au dernier message.
+    - Sécurisation `createPost` (Check strict permissions classes).
+- [x] **Frontend** :
+    - Badge rouge sur l'icône Messages (Layout).
+    - Badge sur chaque conversation dans la liste.
+    - Disparition du badge à l'ouverture du thread.
+
 

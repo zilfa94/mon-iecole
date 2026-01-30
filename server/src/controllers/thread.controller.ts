@@ -119,17 +119,20 @@ export class ThreadController {
             });
 
             // Map for quick lookup
-            const readMap = new Map<number, Date>();
-            threadReads.forEach((tr: { threadId: number; lastReadAt: Date }) => readMap.set(tr.threadId, tr.lastReadAt));
+            const readMap = new Map<number, number>(); // lastReadMessageId
+            threadReads.forEach((tr: any) => {
+                // @ts-ignore
+                readMap.set(tr.threadId, tr.lastReadMessageId || 0);
+            });
 
             // 3. Calculate unread counts
             const threadsWithUnread = await Promise.all(threads.map(async (thread: any) => {
-                const lastRead = readMap.get(thread.id) || thread.createdAt;
+                const lastReadMsgId = readMap.get(thread.id) || 0;
 
                 const unreadCount = await prisma.message.count({
                     where: {
                         threadId: thread.id,
-                        createdAt: { gt: lastRead },
+                        id: { gt: lastReadMsgId },
                         senderId: { not: currentUser.id }
                     }
                 });
@@ -148,7 +151,7 @@ export class ThreadController {
     static async addMessage(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const threadId = parseInt(id as string);
+            const threadId = parseInt(String(id));
             const { content } = req.body;
             const currentUser = req.user!;
 
@@ -216,22 +219,6 @@ export class ThreadController {
                     await tx.attachment.createMany({
                         data: attachmentsData
                     });
-
-                    // Re-fetch message with attachments
-                    return await tx.message.findUnique({
-                        where: { id: newMessage.id },
-                        include: {
-                            sender: {
-                                select: {
-                                    id: true,
-                                    firstName: true,
-                                    lastName: true,
-                                    role: true
-                                }
-                            },
-                            attachments: true
-                        }
-                    });
                 }
 
                 // Update thread timestamp
@@ -240,7 +227,21 @@ export class ThreadController {
                     data: { lastMessageAt: new Date() }
                 });
 
-                return newMessage;
+                // Re-fetch message with attachments (if needed)
+                return await tx.message.findUnique({
+                    where: { id: newMessage.id },
+                    include: {
+                        sender: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                role: true
+                            }
+                        },
+                        attachments: true
+                    }
+                });
             });
 
             return res.json(result);
@@ -412,7 +413,12 @@ export class ThreadController {
     static async markAsRead(req: Request, res: Response) {
         try {
             const currentUser = req.user!;
-            const threadId = Number(req.params.id);
+            const threadId = parseInt(String(req.params.id));
+            const { messageId } = req.body; // Optional: specify which message was read
+
+            if (isNaN(threadId)) {
+                return res.status(400).json({ error: 'Invalid thread ID' });
+            }
 
             // 1. Check participation
             const participant = await prisma.threadParticipant.findUnique({
@@ -428,7 +434,19 @@ export class ThreadController {
                 return res.status(403).json({ error: 'Forbidden: You are not part of this thread' });
             }
 
-            // 2. Upsert ThreadRead
+            // 2. Determine Read ID
+            let lastReadMsgId = messageId ? Number(messageId) : 0;
+
+            if (!lastReadMsgId) {
+                // If no specific message ID provided, mark the LATEST message in thread as read
+                const lastMessage = await prisma.message.findFirst({
+                    where: { threadId },
+                    orderBy: { id: 'desc' }
+                });
+                lastReadMsgId = lastMessage ? lastMessage.id : 0;
+            }
+
+            // 3. Upsert ThreadRead
             await prisma.threadRead.upsert({
                 where: {
                     threadId_userId: {
@@ -437,16 +455,20 @@ export class ThreadController {
                     }
                 },
                 update: {
-                    lastReadAt: new Date()
+                    lastReadAt: new Date(),
+                    // @ts-ignore
+                    lastReadMessageId: lastReadMsgId
                 },
                 create: {
                     threadId: threadId,
                     userId: currentUser.id,
-                    lastReadAt: new Date()
+                    lastReadAt: new Date(),
+                    // @ts-ignore
+                    lastReadMessageId: lastReadMsgId
                 }
             });
 
-            return res.json({ success: true });
+            return res.json({ success: true, lastReadMessageId: lastReadMsgId });
 
         } catch (error) {
             console.error('Mark as read error:', error);
@@ -478,30 +500,34 @@ export class ThreadController {
                 }
             });
 
-            const readMap = new Map<number, Date>();
-            threadReads.forEach(tr => readMap.set(tr.threadId, tr.lastReadAt));
+            const readMap = new Map<number, number>(); // lastReadMessageId
+            // @ts-ignore
+            threadReads.forEach((tr: any) => readMap.set(tr.threadId, tr.lastReadMessageId || 0));
 
             // 3. Count unread messages across ALL threads
             let totalUnread = 0;
+            let unreadByThread: Record<number, number> = {};
 
             // Optimization: We could do a single count query with OR conditions, 
             // but loop is fine for MVP scale (usually < 50 threads)
             for (const thread of threads) {
-                const lastRead = readMap.get(thread.id) || thread.createdAt;
-                // Skip if thread hasn't been updated since last read
-                if (thread.lastMessageAt <= lastRead) continue;
+                const lastReadMsgId = readMap.get(thread.id) || 0;
 
                 const count = await prisma.message.count({
                     where: {
                         threadId: thread.id,
-                        createdAt: { gt: lastRead },
+                        id: { gt: lastReadMsgId },
                         senderId: { not: currentUser.id }
                     }
                 });
-                totalUnread += count;
+
+                if (count > 0) {
+                    totalUnread += count;
+                    unreadByThread[thread.id] = count;
+                }
             }
 
-            return res.json({ count: totalUnread });
+            return res.json({ total: totalUnread, byThread: unreadByThread });
 
         } catch (error) {
             console.error('Get unread count error:', error);

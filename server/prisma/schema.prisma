@@ -145,6 +145,7 @@ model ThreadRead {
   threadId   Int
   userId     Int
   lastReadAt DateTime @default(now())
+  lastReadMessageId Int? @default(0)
 
   thread     MessageThread @relation(fields: [threadId], references: [id])
   user       User          @relation(fields: [userId], references: [id])

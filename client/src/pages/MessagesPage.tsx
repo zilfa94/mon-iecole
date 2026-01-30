@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { SendMessageForm } from '@/components/SendMessageForm';
+import { File as FileIcon } from 'lucide-react';
 
 import { CreateThreadModal } from '@/components/CreateThreadModal';
 
@@ -205,6 +206,34 @@ export function MessagesPage() {
                                                 }`}
                                         >
                                             <p className="text-sm text-gray-800 whitespace-pre-wrap">{msg.content}</p>
+
+                                            {msg.attachments && msg.attachments.length > 0 && (
+                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                    {msg.attachments.map((att: any) => (
+                                                        <a
+                                                            key={att.id}
+                                                            href={att.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block group"
+                                                        >
+                                                            {att.mimeType.startsWith('image/') ? (
+                                                                <img
+                                                                    src={att.url}
+                                                                    alt={att.filename}
+                                                                    className="max-w-[200px] max-h-[200px] rounded-md object-cover border group-hover:opacity-90 transition-opacity"
+                                                                />
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 p-2 bg-white/50 border rounded text-xs text-blue-700 hover:bg-white/80 transition-colors">
+                                                                    <FileIcon className="h-4 w-4" />
+                                                                    <span className="truncate max-w-[150px]">{att.filename}</span>
+                                                                </div>
+                                                            )}
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            )}
+
                                             <p className="text-[10px] text-gray-400 mt-1 text-right">
                                                 {new Date(msg.createdAt).toLocaleString()}
                                             </p>

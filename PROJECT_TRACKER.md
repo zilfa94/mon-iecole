@@ -83,3 +83,16 @@
 - Backend : **STABLE** et prêt pour la V1.1.
 - Frontend : Connecté et fonctionnel.
 - Base de données : Connectée et peuplée (Seed OK).
+
+### 2026-01-30 (Backend - Unread Badges Logic)
+✅ **Fait : Validation Logique Non-lus**
+- [x] Script `test-unread.ts` réparé (Import UserRole corrigé).
+- [x] Validation logique backend : Le comptage des messages non-lus fonctionne correctement via Prisma.
+- [x] Prêt pour implémentation Frontend (Badges UI).
+
+### 2026-01-30 (Feature - File Uploads)
+✅ **Fait : Upload de Fichiers (Cloudinary)**
+- [x] Backend : Middleware Multer + Streamifier + Cloudinary configuré.
+- [x] Backend : Script de test `test-upload.ts` validé (Upload + DB Insert OK).
+- [x] Frontend : Formulaire d'envoi et affichage des pièces jointes prêts.
+- [x] Feature prête à être testée par l'utilisateur.

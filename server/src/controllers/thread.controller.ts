@@ -33,6 +33,7 @@ export class ThreadController {
                                     role: true,
                                 },
                             },
+                            attachments: true,
                         },
                     },
                     participants: {
@@ -156,8 +157,8 @@ export class ThreadController {
                 return res.status(400).json({ error: 'Content is required' });
             }
             const trimmedContent = content.trim();
-            if (trimmedContent.length < 1 || trimmedContent.length > 2000) {
-                return res.status(400).json({ error: 'Content must be between 1 and 2000 characters' });
+            if (trimmedContent.length > 2000) {
+                return res.status(400).json({ error: 'Content too long' });
             }
 
             if (isNaN(threadId)) {
@@ -197,9 +198,41 @@ export class ThreadController {
                                 lastName: true,
                                 role: true
                             }
-                        }
+                        },
+                        attachments: true
                     }
                 });
+
+                // Handle attachments
+                if ((req as any).uploadedFiles && (req as any).uploadedFiles.length > 0) {
+                    const attachmentsData = (req as any).uploadedFiles.map((file: any) => ({
+                        messageId: newMessage.id,
+                        url: file.url,
+                        filename: file.filename,
+                        mimeType: file.mimeType,
+                        size: file.size
+                    }));
+
+                    await tx.attachment.createMany({
+                        data: attachmentsData
+                    });
+
+                    // Re-fetch message with attachments
+                    return await tx.message.findUnique({
+                        where: { id: newMessage.id },
+                        include: {
+                            sender: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    role: true
+                                }
+                            },
+                            attachments: true
+                        }
+                    });
+                }
 
                 // Update thread timestamp
                 await tx.messageThread.update({
@@ -476,5 +509,4 @@ export class ThreadController {
             return res.status(500).json({ error: 'Internal server error' });
         }
     }
-}
 }

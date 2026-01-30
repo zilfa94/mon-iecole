@@ -135,5 +135,17 @@ model Message {
   sender    User     @relation(fields: [senderId], references: [id])
   content   String
   createdAt DateTime @default(now())
+  attachments Attachment[]
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  message   Message  @relation(fields: [messageId], references: [id])
+  url       String
+  filename  String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
 }
 

@@ -1,5 +1,6 @@
 
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { UserRole } from '../src/types/shared';
 // Removed logger import to avoid ts-node issues
 
 const prisma = new PrismaClient();

@@ -35,6 +35,15 @@ export interface ThreadMessage {
     content: string;
     createdAt: string;
     sender: ThreadUser;
+    attachments?: Attachment[];
+}
+
+export interface Attachment {
+    id: number;
+    url: string;
+    filename: string;
+    mimeType: string;
+    size: number;
 }
 
 export interface MessageThread {
@@ -80,7 +89,22 @@ export const getThread = async (id: number): Promise<MessageThread> => {
     return response.data;
 };
 
-export const sendMessage = async (threadId: number, content: string): Promise<ThreadMessage> => {
+export const sendMessage = async (threadId: number, content: string, files?: File[]): Promise<ThreadMessage> => {
+    if (files && files.length > 0) {
+        const formData = new FormData();
+        formData.append('content', content);
+        files.forEach(file => {
+            formData.append('files', file);
+        });
+
+        const response = await api.post(`/threads/${threadId}/messages`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    }
+
     const response = await api.post(`/threads/${threadId}/messages`, { content });
     return response.data;
 };

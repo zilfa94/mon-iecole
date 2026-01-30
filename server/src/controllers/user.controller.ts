@@ -230,47 +230,47 @@ export class UserController {
         }
         res.status(500).json({ error: 'Internal server error' });
     }
-}
 
     static async getMyClasses(req: Request, res: Response) {
-    try {
-        const currentUser = req.user!;
+        try {
+            const currentUser = req.user!;
 
-        if (currentUser.role === UserRole.DIRECTION) {
-            // Direction sees all classes
-            const classes = await prisma.class.findMany({
-                select: { id: true, name: true },
-                orderBy: { name: 'asc' }
-            });
-            return res.json(classes);
-        }
+            if (currentUser.role === UserRole.DIRECTION) {
+                // Direction sees all classes
+                const classes = await prisma.class.findMany({
+                    select: { id: true, name: true },
+                    orderBy: { name: 'asc' }
+                });
+                return res.json(classes);
+            }
 
-        if (currentUser.role === UserRole.PROFESSOR) {
-            // Professors see their assigned classes
-            const professorWithClasses = await prisma.user.findUnique({
-                where: { id: currentUser.id },
-                include: {
-                    teachingClasses: {
-                        include: {
-                            class: {
-                                select: { id: true, name: true }
+            if (currentUser.role === UserRole.PROFESSOR) {
+                // Professors see their assigned classes
+                const professorWithClasses = await prisma.user.findUnique({
+                    where: { id: currentUser.id },
+                    include: {
+                        teachingClasses: {
+                            include: {
+                                class: {
+                                    select: { id: true, name: true }
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
 
-            if (!professorWithClasses) return res.json([]);
+                if (!professorWithClasses) return res.json([]);
 
-            const classes = professorWithClasses.teachingClasses.map(tc => tc.class).sort((a, b) => a.name.localeCompare(b.name));
-            return res.json(classes);
+                const classes = professorWithClasses.teachingClasses.map(tc => tc.class).sort((a, b) => a.name.localeCompare(b.name));
+                return res.json(classes);
+            }
+
+            // Other roles (STUDENT/PARENT) don't list classes (they are implicitly scoped)
+            return res.json([]);
+
+        } catch (error) {
+            console.error('Get my classes error:', error);
+            return res.status(500).json({ error: 'Internal server error' });
         }
-
-        // Other roles (STUDENT/PARENT) don't list classes (they are implicitly scoped)
-        return res.json([]);
-
-    } catch (error) {
-        console.error('Get my classes error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
     }
 }

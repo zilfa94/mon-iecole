@@ -31,10 +31,17 @@ export const handleFileUpload = async (req: Request, res: Response, next: NextFu
         const files = req.files as Express.Multer.File[];
         const uploadPromises = files.map(file => {
             return new Promise((resolve, reject) => {
+                // Generate unique public_id for this file
+                const timestamp = Date.now();
+                const randomStr = Math.random().toString(36).substring(2, 8);
+                const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const publicId = `${timestamp}_${randomStr}_${sanitizedFilename}`;
+
                 const uploadStream = cloudinary.uploader.upload_stream(
                     {
                         folder: 'mon-ecole/messages',
-                        resource_type: 'auto'
+                        resource_type: 'auto',
+                        public_id: publicId
                     },
                     (error, result) => {
                         if (error) return reject(error);

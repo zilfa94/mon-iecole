@@ -113,6 +113,7 @@ export function PostCard({ post }: PostCardProps) {
                                             <img
                                                 src={attachment.url}
                                                 alt={attachment.filename}
+                                                loading="lazy"
                                                 className="w-full h-48 object-cover rounded border hover:opacity-90 transition-opacity"
                                             />
                                             <p className="text-xs text-gray-500 mt-1 truncate">{attachment.filename}</p>

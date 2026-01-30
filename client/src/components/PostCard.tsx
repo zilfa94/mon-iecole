@@ -99,23 +99,38 @@ export function PostCard({ post }: PostCardProps) {
                 {post.attachments && post.attachments.length > 0 && (
                     <div className="space-y-2">
                         <p className="text-xs font-medium text-gray-600">Pièces jointes :</p>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-3">
                             {post.attachments.map((attachment: any) => (
-                                <a
-                                    key={attachment.id}
-                                    href={attachment.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50 transition-colors"
-                                >
+                                <div key={attachment.id}>
                                     {attachment.mimeType.startsWith('image/') ? (
-                                        <ImageIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                        // Image preview
+                                        <a
+                                            href={attachment.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block"
+                                        >
+                                            <img
+                                                src={attachment.url}
+                                                alt={attachment.filename}
+                                                className="w-full h-48 object-cover rounded border hover:opacity-90 transition-opacity"
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1 truncate">{attachment.filename}</p>
+                                        </a>
                                     ) : (
-                                        <FileText className="h-4 w-4 text-red-600 flex-shrink-0" />
+                                        // PDF download link
+                                        <a
+                                            href={attachment.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 p-3 border rounded hover:bg-gray-50 transition-colors"
+                                        >
+                                            <FileText className="h-5 w-5 text-red-600 flex-shrink-0" />
+                                            <span className="text-xs truncate flex-1">{attachment.filename}</span>
+                                            <Download className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                        </a>
                                     )}
-                                    <span className="text-xs truncate flex-1">{attachment.filename}</span>
-                                    <Download className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                                </a>
+                                </div>
                             ))}
                         </div>
                     </div>

@@ -7,3 +7,10 @@
   to = "https://mon-iecole.onrender.com/api/:splat"
   status = 200
   force = true
+
+# SPA Catch-all rule (Must be after API rule)
+# This redirects all other traffic to index.html for React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

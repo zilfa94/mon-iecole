@@ -20,7 +20,8 @@ api.interceptors.response.use(
     }
 );
 
-// ... existing code ...
+import type { CreatePostData, Class } from '@/types';
+
 
 export interface ThreadUser {
     id: number;
@@ -55,6 +56,22 @@ export interface MessageThread {
 
 export const getThreads = async (): Promise<MessageThread[]> => {
     const response = await api.get('/threads');
+    return response.data;
+};
+
+export const getPosts = async (classId?: number | null): Promise<any[]> => {
+    const params = classId ? { classId } : {};
+    const response = await api.get('/posts', { params });
+    return response.data;
+};
+
+export const createPost = async (data: CreatePostData): Promise<any> => {
+    const response = await api.post('/posts', data);
+    return response.data;
+};
+
+export const getMyClasses = async (): Promise<Class[]> => {
+    const response = await api.get('/users/me/classes');
     return response.data;
 };
 

@@ -10,6 +10,7 @@ router.use(requireAuth);
 // 1. Routes accessibles à tous les utilisateurs connectés
 router.get('/me', UserController.me);
 router.get('/me/students', UserController.getMyStudents);
+router.get('/me/classes', UserController.getMyClasses);
 
 // 2. Middleware: Restriction DIRECTION uniquement pour la suite
 router.use(requireRole([UserRole.DIRECTION]));

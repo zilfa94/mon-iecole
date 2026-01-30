@@ -6,7 +6,7 @@ export class PostController {
     // Create a new post (DIRECTION, PROFESSOR, STUDENT only - NO PARENTS)
     static async createPost(req: Request, res: Response) {
         try {
-            const { content, type, isPinned } = req.body;
+            const { content, type, isPinned, classId } = req.body;
 
             // 1. Strict Runtime Validation for Type
             if (!isPostType(type)) {
@@ -26,7 +26,8 @@ export class PostController {
                     authorId: req.user!.id,
                     content,
                     type, // Validated above
-                    isPinned: isPinned || false
+                    isPinned: isPinned || false,
+                    classId: classId ? parseInt(classId) : null
                 },
                 include: {
                     author: {
@@ -48,10 +49,67 @@ export class PostController {
         }
     }
 
-    // List all posts
+    // List all posts (Scoped)
     static async listPosts(req: Request, res: Response) {
         try {
+            const currentUser = req.user!;
+            const { classId } = req.query;
+
+            let whereClause: any = {};
+
+            // Scoping Logic
+            if (currentUser.role === 'STUDENT' || currentUser.role === 'PARENT') {
+                // Students/Parents see Global Posts (classId null) OR Posts for their class
+                // We need to fetch student's classId first if not in session (assuming session usage for MVP)
+                // For MVP, simplistic check: 
+                // If Student -> user.classId
+                // If Parent -> fetch children's classIds? 
+
+                // Keep it simple for V1.1: 
+                // PARENT/STUDENT sees GLOBAL + THEIR Class(es).
+
+                const userClassIds: number[] = [];
+                if (currentUser.role === 'STUDENT' && currentUser.classId) {
+                    userClassIds.push(currentUser.classId);
+                }
+                // (Parent logic omitted for brevity in V1.1 - assuming they see global for now or we check relations)
+                // If PARENT, we need to fetch their kids.
+                if (currentUser.role === 'PARENT') {
+                    const parentData = await prisma.user.findUnique({
+                        where: { id: currentUser.id },
+                        include: {
+                            parentStudents: {
+                                include: {
+                                    student: { select: { classId: true } }
+                                }
+                            }
+                        }
+                    });
+                    parentData?.parentStudents.forEach(ps => {
+                        if (ps.student.classId) userClassIds.push(ps.student.classId);
+                    });
+                }
+
+                whereClause = {
+                    OR: [
+                        { classId: null }, // Global
+                        { classId: { in: userClassIds } } // Their classes
+                    ]
+                };
+            } else {
+                // DIRECTION / PROFESSOR
+                // If strict class filter requested
+                if (classId && classId !== 'all') {
+                    whereClause = { classId: parseInt(classId as string) };
+                }
+                // If no filter or 'all', they see EVERYTHING (Direction) 
+                // OR (Professor) they see Global + Their Classes? 
+                // Usually Profs want to see everything or filter.
+                // Let's default to: If no filter, see ALL posts (simple).
+            }
+
             const posts = await prisma.post.findMany({
+                where: whereClause,
                 include: {
                     author: {
                         select: {
@@ -60,6 +118,9 @@ export class PostController {
                             lastName: true,
                             role: true
                         }
+                    },
+                    class: {
+                        select: { name: true }
                     },
                     comments: {
                         include: {

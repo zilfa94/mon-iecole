@@ -59,6 +59,7 @@ model Class {
   name     String @unique
   students User[]
   professors ProfessorClass[]
+  posts    Post[]
 }
 
 model ProfessorClass {
@@ -79,6 +80,8 @@ model Post {
   isPinned  Boolean  @default(false)
   createdAt DateTime @default(now())
   comments  Comment[]
+  classId   Int?
+  class     Class?   @relation(fields: [classId], references: [id])
 }
 
 model Comment {

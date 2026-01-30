@@ -8,6 +8,7 @@ declare module 'express-serve-static-core' {
             email: string;
             firstName: string;
             lastName: string;
+            classId?: number;
         };
     }
 }

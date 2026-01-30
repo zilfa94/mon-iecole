@@ -7,6 +7,12 @@ export interface User {
     role: UserRole;
     firstName: string;
     lastName: string;
+    classId?: number;
+}
+
+export interface Class {
+    id: number;
+    name: string;
 }
 
 export interface Post {
@@ -31,4 +37,5 @@ export interface LoginCredentials {
 export interface CreatePostData {
     content: string;
     type: PostType;
+    classId?: string;
 }

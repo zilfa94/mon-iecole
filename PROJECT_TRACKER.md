@@ -72,6 +72,7 @@
     - [x] Validation RBAC stricte vérifiée par tests automatisés (`test-access-control.ts` all PASS).
     - [x] "User not found" résolu (Database seeding validé).
     - [x] **Fix Logout** : Ajout de la route POST `/api/auth/logout` pour nettoyer le cookie HttpOnly (fix 404 Netlify).
+    - [x] **Performance** : Migration Base de données vers Oregon (US West) pour colocalisation avec le serveur (Latence réduite).
 - **Architecture & Dev Experience** :
     - [x] Correction Typescript (`req.user`) via `express-serve-static-core`.
     - [x] Configuration Database : Passage à PostgreSQL "External URL" pour le dev local (fix `PrismaClientInitializationError`).

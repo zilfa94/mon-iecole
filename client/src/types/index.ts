@@ -48,6 +48,8 @@ export interface Post {
             lastName: string;
         };
     }>;
+    likedByMe?: boolean;
+    likesCount?: number;
 }
 
 export interface LoginCredentials {

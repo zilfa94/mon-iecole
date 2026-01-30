@@ -49,6 +49,67 @@ export function PostCard({ post }: PostCardProps) {
         }
     });
 
+    const toggleLikeMutation = useMutation({
+        mutationFn: async () => {
+            return api.post(`/posts/${post.id}/like`);
+        },
+        onMutate: async () => {
+            await queryClient.cancelQueries({ queryKey: ['posts'] });
+
+            const previousPosts = queryClient.getQueryData(['posts']);
+
+            queryClient.setQueryData(['posts', ...(queryClient.getQueryData(['posts']) as any)?.pages ? [] : []], (old: any) => {
+                // Handle infinite query structure or simplified list
+                if (!old) return old;
+
+                // If using useInfiniteQuery, old is { pages: [...], pageParams: [...] }
+                // If basic useQuery, old is { posts: [...], ... }
+
+                // Assuming standard query structure from listPosts response
+                // We need to find the post in the pages/list and toggle its state
+
+                // Simplified optimistic update for visual feedback
+                // Note: complex infinite query optimistic updates are tricky, 
+                // for MVP we rely on invalidation or simple local state if performance is key.
+                // But let's try a simple cache update if feasible.
+                return old;
+            });
+
+            // For now, simple invalidation is safer but slower. 
+            // Let's rely on fast local feedback via temporary state or just optimistic UI in the button?
+            // "Correct" optimistic update involves finding the post in the Deep nested structure.
+            // A simpler approach: create a local derived state for UI, but that syncs with props.
+        },
+        onSuccess: () => {
+            // Invalidate to get fresh count and state
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
+        }
+    });
+
+    const handleShare = async () => {
+        const shareData = {
+            title: `Post de ${post.author.firstName} ${post.author.lastName}`,
+            text: post.content,
+            url: window.location.href // Ideally specific post URL if routing exists
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                // User cancelled or error
+            }
+        } else {
+            // Fallback
+            try {
+                await navigator.clipboard.writeText(`${shareData.title}\n\n${shareData.text}`);
+                toast.success('Lien copié dans le presse-papier');
+            } catch (err) {
+                toast.error('Impossible de partager');
+            }
+        }
+    };
+
     const handleDelete = () => {
         if (window.confirm('Êtes-vous sûr de vouloir supprimer ce post ?')) {
             deletePost(post.id);
@@ -186,11 +247,14 @@ export function PostCard({ post }: PostCardProps) {
                 {/* Engagement Stats (Optional) */}
                 <div className="px-4 py-2 flex justify-between items-center text-xs text-gray-500">
                     <div className="flex items-center gap-1">
-                        {/* Placeholder for Likes count */}
-                        <div className="bg-primary p-1 rounded-full text-white">
-                            <ThumbsUp className="h-2 w-2 fill-current" />
-                        </div>
-                        <span>2</span>
+                        {post.likesCount > 0 && (
+                            <>
+                                <div className="bg-primary p-1 rounded-full text-white">
+                                    <ThumbsUp className="h-2 w-2 fill-current" />
+                                </div>
+                                <span>{post.likesCount}</span>
+                            </>
+                        )}
                     </div>
                     <button
                         className="hover:underline"
@@ -203,8 +267,16 @@ export function PostCard({ post }: PostCardProps) {
                 {/* Action Bar */}
                 <div className="px-4 py-1 border-t border-b border-gray-100">
                     <div className="flex gap-1">
-                        <Button variant="ghost" className="flex-1 gap-2 text-gray-600 hover:bg-gray-100 h-9 font-medium">
-                            <ThumbsUp className="h-5 w-5" />
+                        <Button
+                            variant="ghost"
+                            className={`flex-1 gap-2 h-9 font-medium transition-colors ${post.likedByMe
+                                ? 'text-primary hover:text-primary hover:bg-primary/10'
+                                : 'text-gray-600 hover:bg-gray-100'
+                                }`}
+                            onClick={() => toggleLikeMutation.mutate()}
+                            disabled={toggleLikeMutation.isPending}
+                        >
+                            <ThumbsUp className={`h-5 w-5 ${post.likedByMe ? 'fill-current' : ''}`} />
                             J'aime
                         </Button>
                         <Button
@@ -215,7 +287,11 @@ export function PostCard({ post }: PostCardProps) {
                             <MessageCircle className="h-5 w-5" />
                             Commenter
                         </Button>
-                        <Button variant="ghost" className="flex-1 gap-2 text-gray-600 hover:bg-gray-100 h-9 font-medium">
+                        <Button
+                            variant="ghost"
+                            className="flex-1 gap-2 text-gray-600 hover:bg-gray-100 h-9 font-medium"
+                            onClick={handleShare}
+                        >
                             <Share2 className="h-5 w-5" />
                             Partager
                         </Button>

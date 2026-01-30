@@ -164,6 +164,19 @@ export class PostController {
                             }
                         },
                         orderBy: { createdAt: 'asc' }
+                    },
+                    likes: {
+                        where: {
+                            userId: currentUser.id
+                        },
+                        select: {
+                            userId: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            likes: true
+                        }
                     }
                 },
                 orderBy: [
@@ -172,8 +185,16 @@ export class PostController {
                 ]
             });
 
+            // Transform posts to include likedByMe boolean
+            const transformedPosts = posts.map(post => ({
+                ...post,
+                likedByMe: (post as any).likes.length > 0,
+                likes: undefined, // Remove raw likes array
+                likesCount: (post as any)._count.likes
+            }));
+
             return res.json({
-                posts,
+                posts: transformedPosts,
                 pagination: {
                     page,
                     limit,
@@ -359,6 +380,49 @@ export class PostController {
             console.error('Toggle pin error:', error);
             // Handle record not found
             if ((error as any).code === 'P2025') {
+                return res.status(404).json({ error: 'Post not found' });
+            }
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    // Toggle like status
+    static async toggleLike(req: Request, res: Response) {
+        try {
+            const userId = req.user!.id; // Authenticated user
+            const postId = parseInt(req.params.id);
+
+            if (isNaN(postId)) {
+                return res.status(400).json({ error: 'Invalid post ID' });
+            }
+
+            const existingLike = await prisma.like.findUnique({
+                where: {
+                    postId_userId: {
+                        postId,
+                        userId
+                    }
+                }
+            });
+
+            if (existingLike) {
+                await prisma.like.delete({
+                    where: { id: existingLike.id }
+                });
+                return res.json({ liked: false });
+            } else {
+                await prisma.like.create({
+                    data: {
+                        postId,
+                        userId
+                    }
+                });
+                return res.json({ liked: true });
+            }
+        } catch (error) {
+            console.error('Toggle like error:', error);
+            // Handle post not found (P2003 foreign key constraint failed)
+            if ((error as any).code === 'P2003') {
                 return res.status(404).json({ error: 'Post not found' });
             }
             return res.status(500).json({ error: 'Internal server error' });

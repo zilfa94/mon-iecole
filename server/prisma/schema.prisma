@@ -34,6 +34,7 @@ model User {
   // Content relations
   posts        Post[]
   comments     Comment[]
+  likes        Like[]
   
   // Messaging relations
   threads      ThreadParticipant[]
@@ -80,6 +81,7 @@ model Post {
   isPinned    Boolean          @default(false)
   createdAt   DateTime         @default(now())
   comments    Comment[]
+  likes       Like[]
   attachments PostAttachment[]
   classId     Int?
   class       Class?           @relation(fields: [classId], references: [id])
@@ -104,6 +106,17 @@ model Comment {
   author    User     @relation(fields: [authorId], references: [id])
   content   String
   createdAt DateTime @default(now())
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId]) // User can like a post only once
 }
 
 model MessageThread {

@@ -27,4 +27,7 @@ router.delete('/:id', PostController.deletePost);
 // Pin/Unpin post: DIRECTION only
 router.patch('/:id/pin', requireRole([UserRole.DIRECTION]), PostController.togglePin);
 
+// Toggle like: All authenticated users
+router.post('/:id/like', PostController.toggleLike);
+
 export default router;

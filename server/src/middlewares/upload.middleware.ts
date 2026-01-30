@@ -29,7 +29,7 @@ export const handleFileUpload = async (req: Request, res: Response, next: NextFu
         }
 
         const files = req.files as Express.Multer.File[];
-        const uploadPromises = files.map(file => {
+        const uploadPromises = files.map((file: Express.Multer.File) => {
             return new Promise((resolve, reject) => {
                 // Generate unique public_id for this file
                 const timestamp = Date.now();

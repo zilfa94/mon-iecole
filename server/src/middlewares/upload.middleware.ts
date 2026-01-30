@@ -57,7 +57,15 @@ export const handleFileUpload = async (req: Request, res: Response, next: NextFu
         (req as any).uploadedFiles = uploadedFiles;
         next();
     } catch (error) {
-        console.error('File upload error:', error);
-        res.status(500).json({ error: 'File upload failed' });
+        console.error('❌ File upload error:', error);
+        console.error('Error details:', {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+            cloudinaryConfigured: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+        });
+        res.status(500).json({
+            error: 'File upload failed',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 };

@@ -88,7 +88,7 @@
 ✅ **Fait : Validation Logique Non-lus**
 - [x] Script `test-unread.ts` réparé (Import UserRole corrigé).
 - [x] Validation logique backend : Le comptage des messages non-lus fonctionne correctement via Prisma.
-- [x] Prêt pour implémentation Frontend (Badges UI).
+- [x] Implémentation Frontend : Badges UI déjà présents (Sidebar + Threads).
 
 ### 2026-01-30 (Feature - File Uploads)
 ✅ **Fait : Upload de Fichiers (Cloudinary)**

@@ -5,6 +5,7 @@ import { CreatePostForm } from '@/components/CreatePostForm';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMyClasses } from '@/lib/api';
+import { Button } from '@/components/ui/button';
 import {
     Select,
     SelectContent,
@@ -17,7 +18,7 @@ export function FeedPage() {
     const { user } = useAuth();
     const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
-    const { data: posts, isLoading, error } = usePosts(selectedClassId);
+    const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = usePosts(selectedClassId);
 
     const { data: classes } = useQuery({
         queryKey: ['myClasses'],
@@ -27,14 +28,11 @@ export function FeedPage() {
 
     const canCreatePost = user && ['DIRECTION', 'PROFESSOR', 'STUDENT'].includes(user.role);
 
-    // Tri : épinglés d'abord, puis par date décroissante
-    const sortedPosts = posts
-        ? [...posts].sort((a, b) => {
-            if (a.isPinned && !b.isPinned) return -1;
-            if (!a.isPinned && b.isPinned) return 1;
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        })
-        : [];
+    // Flatten all pages into a single array of posts
+    const allPosts = data?.pages.flatMap(page => page.posts) || [];
+
+    // Posts are already sorted by backend (isPinned desc, createdAt desc)
+    // No need to re-sort here
 
     if (isLoading) {
         return (
@@ -81,10 +79,25 @@ export function FeedPage() {
                         </div>
                     )}
                 </div>
-                {sortedPosts.length === 0 ? (
+
+                {allPosts.length === 0 ? (
                     <p className="text-gray-500 text-center py-8">Aucun post pour le moment</p>
                 ) : (
-                    sortedPosts.map((post) => <PostCard key={post.id} post={post} />)
+                    <>
+                        {allPosts.map((post) => <PostCard key={post.id} post={post} />)}
+
+                        {hasNextPage && (
+                            <div className="flex justify-center pt-4">
+                                <Button
+                                    onClick={() => fetchNextPage()}
+                                    disabled={isFetchingNextPage}
+                                    variant="outline"
+                                >
+                                    {isFetchingNextPage ? 'Chargement...' : 'Charger plus'}
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

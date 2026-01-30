@@ -56,3 +56,16 @@ export interface CreatePostData {
     type: PostType;
     classId?: string;
 }
+
+export interface PaginationMeta {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+}
+
+export interface PostsResponse {
+    posts: Post[];
+    pagination: PaginationMeta;
+}

@@ -29,7 +29,8 @@ export function FeedPage() {
     const canCreatePost = user && ['DIRECTION', 'PROFESSOR', 'STUDENT'].includes(user.role);
 
     // Flatten all pages into a single array of posts
-    const allPosts = data?.pages.flatMap(page => page.posts) || [];
+    // Safe fallback: if data or pages is undefined, return empty array
+    const allPosts = data?.pages?.flatMap(page => page.posts) ?? [];
 
     // Posts are already sorted by backend (isPinned desc, createdAt desc)
     // No need to re-sort here

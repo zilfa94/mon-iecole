@@ -81,7 +81,7 @@ export function useCreatePost() {
             queryClient.invalidateQueries({ queryKey: ['posts'] });
             toast.success('Post créé avec succès');
         },
-        onError: (error: any, newPost, context) => {
+        onError: (error: any, _newPost, context) => {
             // Rollback to previous value on error
             if (context?.previousPosts) {
                 queryClient.setQueryData(['posts'], context.previousPosts);

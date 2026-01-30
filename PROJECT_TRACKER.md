@@ -91,8 +91,26 @@
 - [x] Implémentation Frontend : Badges UI déjà présents (Sidebar + Threads).
 
 ### 2026-01-30 (Feature - File Uploads)
-✅ **Fait : Upload de Fichiers (Cloudinary)**
-- [x] Backend : Middleware Multer + Streamifier + Cloudinary configuré.
-- [x] Backend : Script de test `test-upload.ts` validé (Upload + DB Insert OK).
-- [x] Frontend : Formulaire d'envoi et affichage des pièces jointes prêts.
-- [x] Feature prête à être testée par l'utilisateur.
+✅ **Fait : Upload de Fichiers (Cloudinary) - COMPLET**
+- [x] **Backend** :
+    - Middleware Multer (memoryStorage) + Streamifier pour upload direct vers Cloudinary
+    - Configuration Cloudinary avec variables d'environnement (CLOUD_NAME, API_KEY, API_SECRET)
+    - Génération automatique de `public_id` unique pour chaque fichier
+    - Route `POST /threads/:id/messages` avec support multipart/form-data
+    - Création automatique d'enregistrements `Attachment` liés aux messages
+- [x] **Frontend** :
+    - UI de sélection de fichiers (max 5 fichiers, 5MB chacun)
+    - Prévisualisation des fichiers avant envoi
+    - Validation côté client (taille, nombre de fichiers)
+    - Affichage des pièces jointes dans les messages
+- [x] **Déploiement & Debugging** :
+    - Fix route manquante `POST /threads` pour création de conversations
+    - Fix erreur Cloudinary "Missing required parameter - public_id"
+    - Fix erreur TypeScript sur Render (annotation de type explicite)
+    - Fix dépendances : Déplacement `@types/multer` et `@types/streamifier` vers `dependencies`
+    - Configuration variables d'environnement Cloudinary sur Render
+- [x] **Tests** :
+    - Script `test-upload.ts` validé (Upload Cloudinary + DB Insert OK)
+    - Tests manuels en production réussis
+- **Statut** : ✅ Feature complète et déployée en production
+

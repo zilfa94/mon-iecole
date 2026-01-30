@@ -63,11 +63,14 @@ export function useCreatePost() {
                 // Update first page with optimistic post
                 return {
                     ...old,
-                    pages: old.pages.map((page: any, index: number) =>
-                        index === 0
-                            ? { ...page, posts: [optimisticPost, ...page.posts] }
-                            : page
-                    )
+                    pages: old.pages.map((page: any, index: number) => {
+                        if (index === 0) {
+                            // Safety check: ensure page.posts is an array
+                            const existingPosts = Array.isArray(page.posts) ? page.posts : [];
+                            return { ...page, posts: [optimisticPost, ...existingPosts] };
+                        }
+                        return page;
+                    })
                 };
             });
 

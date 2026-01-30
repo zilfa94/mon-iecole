@@ -56,7 +56,6 @@ export function PostCard({ post }: PostCardProps) {
         onMutate: async () => {
             await queryClient.cancelQueries({ queryKey: ['posts'] });
 
-            const previousPosts = queryClient.getQueryData(['posts']);
 
             queryClient.setQueryData(['posts', ...(queryClient.getQueryData(['posts']) as any)?.pages ? [] : []], (old: any) => {
                 // Handle infinite query structure or simplified list

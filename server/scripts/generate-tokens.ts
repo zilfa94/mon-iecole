@@ -1,6 +1,12 @@
 
+
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Explicitly load .env from the server root (one level up from scripts)
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import jwt from 'jsonwebtoken';
-import { UserRole } from '../src/types/enums';
+import { UserRole } from '../src/types/shared';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -20,7 +26,7 @@ function generateToken(id: number, role: UserRole) {
 // Agent can run background processes.
 
 console.log("Tokens for testing:");
-console.log("DIRECTION:", generateToken(1, UserRole.DIRECTION)); // Assuming ID 1
-console.log("PROFESSOR (Non-participant):", generateToken(2, UserRole.PROFESSOR)); // ID 2
-console.log("STUDENT (Participant):", generateToken(3, UserRole.STUDENT)); // ID 3
-console.log("PARENT (Participant):", generateToken(4, UserRole.PARENT)); // ID 4
+console.log("DIRECTION:", generateToken(1, UserRole.DIRECTION)); // ID 1 (Admin)
+console.log("PROFESSOR (Non-participant):", generateToken(3, UserRole.PROFESSOR)); // ID 3 (Prof)
+console.log("STUDENT (Participant):", generateToken(4, UserRole.STUDENT)); // ID 4 (Student Leo)
+console.log("PARENT (Participant):", generateToken(6, UserRole.PARENT)); // ID 6 (Parent Leo)

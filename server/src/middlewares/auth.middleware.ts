@@ -68,6 +68,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
         next();
     } catch (error) {
+        console.error("Auth Middleware Error:", error);
         return res.status(401).json({ error: 'Invalid token' });
     }
 };

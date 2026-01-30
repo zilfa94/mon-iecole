@@ -1,6 +1,12 @@
 
+
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Explicitly load .env from the server root (one level up from scripts)
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import jwt from 'jsonwebtoken';
-import { UserRole } from '../src/types/enums';
+import { UserRole } from '../src/types/shared';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -8,14 +14,15 @@ function generateToken(id: number, role: UserRole) {
     return jwt.sign({ id, email: 'test@test.com', role }, JWT_SECRET, { expiresIn: '1h' });
 }
 
-// IDs from seed:
+// IDs from seed (likely):
 // 1: Direction
-// 2: Professor
-// 3: Student (Participant in thread 1)
-// 4: Parent (Participant in thread 1)
+// 3: Professor
+// 4: Student (Participant in thread 1)
+// 6: Parent (Participant in thread 1)
 // Thread ID: 1
 
-const BASE_URL = 'http://localhost:3000/api/threads/1';
+const API_URL = process.env.API_URL || 'http://localhost:3000';
+const BASE_URL = `${API_URL}/api/threads/1`;
 
 async function testRequest(name: string, token: string | null, expectedStatus: number) {
     const headers: any = { 'Content-Type': 'application/json' };
@@ -38,13 +45,13 @@ async function run() {
     // 1. No Token
     await testRequest('No Token', null, 401);
 
-    // 2. Non Participant (Professor ID 2)
-    const tokenProf = generateToken(2, UserRole.PROFESSOR);
+    // 2. Non Participant (Professor ID 3)
+    const tokenProf = generateToken(3, UserRole.PROFESSOR);
     await testRequest('Non-Participant (Prof)', tokenProf, 403);
 
-    // 3. Participant (Student ID 3)
-    const tokenStudent = generateToken(3, UserRole.STUDENT);
-    await testRequest('Participant (Student)', tokenStudent, 200);
+    // 3. Participant (Parent ID 6)
+    const tokenParent = generateToken(6, UserRole.PARENT);
+    await testRequest('Participant (Parent)', tokenParent, 200);
 
     // 4. Direction (ID 1)
     const tokenDirection = generateToken(1, UserRole.DIRECTION);

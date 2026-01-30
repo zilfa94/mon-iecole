@@ -10,6 +10,10 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
+  "ts-node": {
+    "files": true,
+    "transpileOnly": true
+  },
   "include": [
     "src/**/*",
     "prisma/**/*"

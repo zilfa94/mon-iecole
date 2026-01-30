@@ -18,6 +18,12 @@ router.get('/', PostController.listPosts);
 // Create comment: All authenticated users can comment
 router.post('/:id/comments', PostController.createComment);
 
+// Update post: Author or DIRECTION only (checked in controller)
+router.patch('/:id', PostController.updatePost);
+
+// Delete post: Author or DIRECTION only (checked in controller)
+router.delete('/:id', PostController.deletePost);
+
 // Pin/Unpin post: DIRECTION only
 router.patch('/:id/pin', requireRole([UserRole.DIRECTION]), PostController.togglePin);
 

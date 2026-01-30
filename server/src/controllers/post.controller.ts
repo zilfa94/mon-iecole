@@ -230,6 +230,113 @@ export class PostController {
         }
     }
 
+    // Update a post (author or DIRECTION only)
+    static async updatePost(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const { content, type, classId } = req.body;
+
+            // 1. Validate content
+            if (!content || content.trim().length === 0) {
+                return res.status(400).json({ error: 'Content is required' });
+            }
+
+            // 2. Validate type if provided
+            if (type && !['SCOLARITE', 'ACTIVITE', 'URGENT', 'GENERAL'].includes(type)) {
+                return res.status(400).json({ error: 'Invalid post type' });
+            }
+
+            // 3. Get existing post to check ownership
+            const existingPost = await prisma.post.findUnique({
+                where: { id: parseInt(id as string) }
+            });
+
+            if (!existingPost) {
+                return res.status(404).json({ error: 'Post not found' });
+            }
+
+            // 4. Check permissions: author or DIRECTION
+            if (existingPost.authorId !== req.user!.id && req.user!.role !== 'DIRECTION') {
+                return res.status(403).json({ error: 'You can only edit your own posts' });
+            }
+
+            // 5. Update post
+            const updatedPost = await prisma.post.update({
+                where: { id: parseInt(id as string) },
+                data: {
+                    content: content.trim(),
+                    ...(type && { type }),
+                    ...(classId !== undefined && { classId: classId ? parseInt(classId) : null })
+                },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            role: true
+                        }
+                    },
+                    class: {
+                        select: { name: true }
+                    },
+                    // @ts-ignore - Prisma types will be regenerated on deployment
+                    attachments: true,
+                    comments: {
+                        include: {
+                            author: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true
+                                }
+                            }
+                        },
+                        orderBy: { createdAt: 'asc' }
+                    }
+                }
+            });
+
+            return res.json(updatedPost);
+
+        } catch (error) {
+            console.error('Update post error:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    // Delete a post (author or DIRECTION only)
+    static async deletePost(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+
+            // 1. Get existing post to check ownership
+            const existingPost = await prisma.post.findUnique({
+                where: { id: parseInt(id as string) }
+            });
+
+            if (!existingPost) {
+                return res.status(404).json({ error: 'Post not found' });
+            }
+
+            // 2. Check permissions: author or DIRECTION
+            if (existingPost.authorId !== req.user!.id && req.user!.role !== 'DIRECTION') {
+                return res.status(403).json({ error: 'You can only delete your own posts' });
+            }
+
+            // 3. Delete post (cascade will delete attachments and comments)
+            await prisma.post.delete({
+                where: { id: parseInt(id as string) }
+            });
+
+            return res.status(204).send();
+
+        } catch (error) {
+            console.error('Delete post error:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
     // Toggle pin status (DIRECTION only)
     static async togglePin(req: Request, res: Response) {
         try {

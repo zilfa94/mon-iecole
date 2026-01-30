@@ -1,6 +1,6 @@
 import type { Post as PostType } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Pin, FileText, Download, Image as ImageIcon } from 'lucide-react';
+import { Pin, FileText, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';

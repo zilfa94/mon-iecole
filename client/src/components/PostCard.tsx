@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Post as PostType } from '@/types';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Pin, FileText, Download, MoreHorizontal, ThumbsUp, MessageCircle, Share2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

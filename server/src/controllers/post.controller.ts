@@ -182,7 +182,7 @@ export class PostController {
             // 2. Create comment
             const comment = await prisma.comment.create({
                 data: {
-                    postId: parseInt(id),
+                    postId: parseInt(id as string),
                     authorId: req.user!.id,
                     content: content.trim()
                 },

@@ -114,3 +114,36 @@
     - Tests manuels en production réussis
 - **Statut** : ✅ Feature complète et déployée en production
 
+### 2026-01-30 (Feature - Posts Feed Enhancements)
+✅ **Fait : Améliorations du Fil d'Actualités - COMPLET**
+- [x] **Backend** :
+    - Modèle `PostAttachment` ajouté au schéma Prisma (url, filename, mimeType, size)
+    - Contrôleur `createPost` mis à jour pour gérer les fichiers uploadés
+    - Endpoint `POST /posts/:id/comments` pour créer des commentaires
+    - Inclusion des attachments et comments dans `listPosts`
+    - Réutilisation du middleware upload existant (Multer + Cloudinary)
+- [x] **Frontend** :
+    - `CreatePostForm` : UI de sélection de fichiers (max 5, 5MB chacun)
+    - `useCreatePost` : Conversion vers FormData pour upload multipart
+    - `CommentSection` : Nouveau composant pour afficher/ajouter des commentaires
+    - `PostCard` : Affichage des pièces jointes (images/PDFs) et intégration des commentaires
+    - Types TypeScript mis à jour (Post avec attachments et comments)
+- [x] **Polling Temps Réel** :
+    - `usePosts` : Ajout de `refetchInterval: 5000` (rafraîchissement toutes les 5 secondes)
+    - Mises à jour automatiques du feed sans rechargement manuel
+- [x] **Tests** :
+    - Validation upload de fichiers dans les posts
+    - Test système de commentaires (création, affichage)
+    - Vérification polling multi-fenêtres
+- **Statut** : ✅ Feature complète et déployée en production (commit cdf85a5)
+
+---
+
+## 🎉 MVP COMPLET
+
+Toutes les fonctionnalités principales sont implémentées et déployées :
+- ✅ **Authentification** : JWT avec cookies HttpOnly, RBAC
+- ✅ **Messagerie** : Threads, messages, pièces jointes, badges non-lus
+- ✅ **Fil d'Actualités** : Posts, commentaires, uploads, polling temps réel
+- ✅ **Gestion Classes** : Filtrage par classe, permissions par rôle
+

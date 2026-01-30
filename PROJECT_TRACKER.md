@@ -64,3 +64,21 @@
 - Améliorations UI/UX (Responsive, final checks)
 - Logique Professeurs -> Classes (actuellement Prof voit tous les élèves)
 - Préparation Démo / Déploiement
+
+### 2026-01-30 (Backend Stabilization & Fixes)
+✅ **Fait : Mise à niveau Critique du Backend**
+- **Auth & Sécurité** :
+    - [x] Correction de l'erreur "Invalid Token" (alignement JWT_SECRET env/scripts).
+    - [x] Validation RBAC stricte vérifiée par tests automatisés (`test-access-control.ts` all PASS).
+    - [x] "User not found" résolu (Database seeding validé).
+    - [x] **Fix Logout** : Ajout de la route POST `/api/auth/logout` pour nettoyer le cookie HttpOnly (fix 404 Netlify).
+- **Architecture & Dev Experience** :
+    - [x] Correction Typescript (`req.user`) via `express-serve-static-core`.
+    - [x] Configuration Database : Passage à PostgreSQL "External URL" pour le dev local (fix `PrismaClientInitializationError`).
+    - [x] Prisma : Alignement des versions (Compatibilité Schema Postgres vs Client Sqlite résolue).
+    - [x] Scripts : `check-users.ts` créé pour débogage rapide.
+
+**État du projet** :
+- Backend : **STABLE** et prêt pour la V1.1.
+- Frontend : Connecté et fonctionnel.
+- Base de données : Connectée et peuplée (Seed OK).

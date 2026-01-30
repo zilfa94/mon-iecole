@@ -68,4 +68,13 @@ export class AuthController {
         // req.user is set by requireAuth middleware
         return res.json({ user: req.user });
     }
+
+    static async logout(req: Request, res: Response) {
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'lax'
+        });
+        return res.json({ message: 'Logout successful' });
+    }
 }

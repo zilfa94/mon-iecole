@@ -82,4 +82,9 @@ export const createThread = async (studentId: number, recipientRole: string): Pr
     return response.data;
 };
 
+export const getUnreadCount = async (): Promise<{ count: number }> => {
+    const response = await api.get('/threads/unread');
+    return response.data;
+};
+
 export default api;

@@ -420,4 +420,61 @@ export class ThreadController {
             return res.status(500).json({ error: 'Internal server error' });
         }
     }
+
+
+    static async getUnreadCount(req: Request, res: Response) {
+        try {
+            const currentUser = req.user!;
+
+            // 1. Fetch threads where user is participant
+            const threads = await prisma.messageThread.findMany({
+                where: {
+                    participants: {
+                        some: { userId: currentUser.id }
+                    }
+                },
+                select: { id: true, createdAt: true, lastMessageAt: true }
+            });
+
+            // 2. Fetch Read Status
+            const threadIds = threads.map(t => t.id);
+            const threadReads = await prisma.threadRead.findMany({
+                where: {
+                    userId: currentUser.id,
+                    threadId: { in: threadIds }
+                }
+            });
+
+            const readMap = new Map<number, Date>();
+            threadReads.forEach(tr => readMap.set(tr.threadId, tr.lastReadAt));
+
+            // 3. Count unread messages across ALL threads
+            let totalUnread = 0;
+
+            // Optimization: We could do a single count query with OR conditions, 
+            // but loop is fine for MVP scale (usually < 50 threads)
+            for (const thread of threads) {
+                const lastRead = readMap.get(thread.id) || thread.createdAt;
+                // Skip if thread hasn't been updated since last read
+                if (thread.lastMessageAt <= lastRead) continue;
+
+                const count = await prisma.message.count({
+                    where: {
+                        threadId: thread.id,
+                        createdAt: { gt: lastRead },
+                        senderId: { not: currentUser.id }
+                    }
+                });
+                totalUnread += count;
+            }
+
+            return res.json({ count: totalUnread });
+
+        } catch (error) {
+            console.error('Get unread count error:', error);
+            // Use console.error directly here or import error from logger if available
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+}
 }

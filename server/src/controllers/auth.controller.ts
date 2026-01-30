@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { UserRole } from '../types/shared';
+import { error } from '../utils/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -58,8 +59,8 @@ export class AuthController {
                 }
             });
 
-        } catch (error) {
-            console.error('Login error:', error);
+        } catch (err) {
+            error('Login error:', err);
             return res.status(500).json({ error: 'Internal server error' });
         }
     }

@@ -3,7 +3,10 @@ import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
+import { log } from './utils/logger';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,11 +14,33 @@ const PORT = process.env.PORT || 3000;
 // Enable proxy trust to ensure cookies are secure even behind a reverse proxy (Netlify/Render)
 app.set('trust proxy', 1);
 
-// CORS configuration - Allow frontend to access backend
-// With Netlify Proxy, the browser sees Same-Origin, but the proxy might forward headers.
-// origin: true allows the request origin dynamically.
+// Security Headers
+app.use(helmet());
+
+// Rate Limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
+// Auth Rate Limiting (Brute Force Protection)
+const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // Limit each IP to 10 login attempts per hour
+    message: 'Too many login attempts, please try again later.'
+});
+app.use('/api/auth/login', authLimiter);
+
+// CORS configuration - Strict for Production
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+log('CORS Origin Allowed:', clientUrl);
+
 app.use(cors({
-    origin: true,
+    origin: clientUrl,
     credentials: true, // Allow cookies
 }));
 
@@ -37,5 +62,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    log(`Server is running on port ${PORT}`);
 });

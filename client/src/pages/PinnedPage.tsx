@@ -1,14 +1,15 @@
 import { usePosts } from '@/hooks/usePosts';
 import { PostCard } from '@/components/PostCard';
+import type { Post } from '@/types';
 
 export function PinnedPage() {
-    const { data: posts, isLoading, error } = usePosts();
+    const { data, isLoading, error } = usePosts();
 
-    const pinnedPosts = posts
-        ? posts
-            .filter((post) => post.isPinned)
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        : [];
+    const allPosts = data?.pages?.flatMap((page) => page.posts) ?? [];
+
+    const pinnedPosts = allPosts
+        .filter((post: Post) => post.isPinned)
+        .sort((a: Post, b: Post) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     if (isLoading) {
         return (

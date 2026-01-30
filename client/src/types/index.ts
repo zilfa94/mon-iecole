@@ -27,6 +27,10 @@ export interface Post {
         lastName: string;
         role: UserRole;
     };
+    class?: {
+        id: number;
+        name: string;
+    };
     attachments?: Array<{
         id: number;
         url: string;

@@ -38,7 +38,10 @@ export function useCreatePost() {
             // Note: This is a simplified version. In reality, useInfiniteQuery structure is more complex
             // We're just showing the concept here
             queryClient.setQueryData(['posts'], (old: any) => {
-                if (!old) return old;
+                // Safety check: if no data yet, return undefined (will be set on first fetch)
+                if (!old || !old.pages || !Array.isArray(old.pages)) {
+                    return old;
+                }
 
                 // For infinite query, we need to update the first page
                 const optimisticPost = {

@@ -24,22 +24,28 @@ export class PostController {
             const uploadedFiles = (req as any).uploadedFiles || [];
 
             // 4. Create post with attachments
+            const postData: any = {
+                authorId: req.user!.id,
+                content,
+                type, // Validated above
+                isPinned: isPinned || false,
+                classId: classId ? parseInt(classId) : null
+            };
+
+            // Only add attachments if files were uploaded
+            if (uploadedFiles.length > 0) {
+                postData.attachments = {
+                    create: uploadedFiles.map((file: any) => ({
+                        url: file.url,
+                        filename: file.filename,
+                        mimeType: file.mimeType,
+                        size: file.size
+                    }))
+                };
+            }
+
             const newPost = await prisma.post.create({
-                data: {
-                    authorId: req.user!.id,
-                    content,
-                    type, // Validated above
-                    isPinned: isPinned || false,
-                    classId: classId ? parseInt(classId) : null,
-                    attachments: {
-                        create: uploadedFiles.map((file: any) => ({
-                            url: file.url,
-                            filename: file.filename,
-                            mimeType: file.mimeType,
-                            size: file.size
-                        }))
-                    }
-                },
+                data: postData,
                 include: {
                     author: {
                         select: {
@@ -49,6 +55,7 @@ export class PostController {
                             role: true
                         }
                     },
+                    // @ts-ignore - Prisma types will be regenerated on deployment
                     attachments: true
                 }
             });
@@ -134,6 +141,7 @@ export class PostController {
                     class: {
                         select: { name: true }
                     },
+                    // @ts-ignore - Prisma types will be regenerated on deployment
                     attachments: true,
                     comments: {
                         include: {

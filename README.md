@@ -7,6 +7,13 @@ Application monorepo (Client + Server) pour la gestion de communication entre l'
 - **client/** : Frontend React (Vite + Tailwind + Shadcn/UI).
 - **server/** : Backend Node.js (Express + Prisma + PostgreSQL).
 
+## Fonctionnalités Clés
+
+- **Authentification Sécurisée** : JWT HttpOnly, Rôles (Direction, Prof, Parent, Élève).
+- **Fil d'Actualité** : Posts riches, commentaires, pièces jointes, pagination optimisée.
+- **Messagerie Instantanée** : Discussions privées, upload de fichiers, temps réel.
+- **Performance** : Lazy loading des images, mises à jour optimistes, chargement progressif.
+
 ## Pré-requis
 
 - Node.js (v18+)

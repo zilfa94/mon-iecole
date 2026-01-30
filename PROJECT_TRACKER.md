@@ -137,6 +137,26 @@
     - Vérification polling multi-fenêtres
 - **Statut** : ✅ Feature complète et déployée en production (commit cdf85a5)
 
+### 2026-01-30 (Phase 1 Optimizations & Fixes)
+✅ **Fait : Optimisations Performance & UX - COMPLET**
+- [x] **Lazy Loading** : Images chargés à la demande (`loading="lazy"`).
+- [x] **Pagination** :
+    - Backend : `listPosts` accepte `page`/`limit`.
+    - Frontend : Chargement par lots de 20 posts + bouton "Charger plus".
+    - Performance : Chargement initial ultra-rapide.
+- [x] **Édition/Suppression** :
+    - UI complète (Menu 3 points) pour auteurs et Direction.
+    - Endpoints sécurisés `PATCH /posts/:id` et `DELETE /posts/:id`.
+- [x] **Optimistic Updates** :
+    - Création de post instantanée (Zéro latence perçue).
+    - Rollback automatique en cas d'erreur.
+- [x] **Bug Fixes Critiques** :
+    - Fix `TypeError: is not iterable` (Pagination & Optimistic Updates).
+    - Sécurisation des accès aux tableaux (`?.`, `Array.isArray`).
+    - Fix Linting (`unused variable`).
+
+- **Statut** : ✅ Phase 1 terminée et stable en production.
+
 ---
 
 ## 🎉 MVP COMPLET

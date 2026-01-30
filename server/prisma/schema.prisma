@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+// Enums removed for SQLite compatibility
+
+
+// Models
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  role         String   // SQLite does not support Enums
+  firstName    String
+  lastName     String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  classId      Int?
+  class        Class?   @relation(fields: [classId], references: [id])
+
+  // Pivot relations for Parent/Student
+  parentStudents ParentStudent[] @relation("ParentLink") // User is parent
+  studentParents ParentStudent[] @relation("StudentLink") // User is student
+
+  // Content relations
+  posts        Post[]
+  comments     Comment[]
+  
+  // Messaging relations
+  threads      ThreadParticipant[]
+  messages     Message[]
+  studentThreads MessageThread[] @relation("ThreadStudent")
+  threadReads  ThreadRead[]
+  
+  // Teaching relations
+  teachingClasses ProfessorClass[] @relation("ProfessorClasses")
+}
+
+model ParentStudent {
+  parentId  Int
+  studentId Int
+  parent    User @relation("ParentLink", fields: [parentId], references: [id])
+  student   User @relation("StudentLink", fields: [studentId], references: [id])
+
+  @@id([parentId, studentId])
+}
+
+model Class {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  students User[]
+  professors ProfessorClass[]
+}
+
+model ProfessorClass {
+  professorId Int
+  classId     Int
+  professor   User  @relation("ProfessorClasses", fields: [professorId], references: [id])
+  class       Class @relation(fields: [classId], references: [id])
+
+  @@id([professorId, classId])
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  type      String   @default("GENERAL")
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  comments  Comment[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model MessageThread {
+  id            Int      @id @default(autoincrement())
+  studentId     Int?
+  student       User?    @relation("ThreadStudent", fields: [studentId], references: [id])
+  createdAt     DateTime @default(now())
+  lastMessageAt DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  participants  ThreadParticipant[]
+  messages      Message[]
+  threadReads   ThreadRead[]
+}
+
+model ThreadParticipant {
+  threadId Int
+  userId   Int
+  thread   MessageThread @relation(fields: [threadId], references: [id])
+  user     User          @relation(fields: [userId], references: [id])
+
+  @@id([threadId, userId])
+}
+
+model ThreadRead {
+  threadId   Int
+  userId     Int
+  lastReadAt DateTime @default(now())
+
+  thread     MessageThread @relation(fields: [threadId], references: [id])
+  user       User          @relation(fields: [userId], references: [id])
+
+  @@id([threadId, userId])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  threadId  Int
+  thread    MessageThread @relation(fields: [threadId], references: [id])
+  senderId  Int
+  sender    User     @relation(fields: [senderId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+}
+

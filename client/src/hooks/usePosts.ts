@@ -13,5 +13,6 @@ export function usePosts(classId?: number | null) {
             const response = await api.get('/posts', { params });
             return response.data;
         },
+        refetchInterval: 5000, // Poll every 5 seconds for real-time updates
     });
 }

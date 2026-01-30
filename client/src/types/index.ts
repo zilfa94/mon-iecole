@@ -27,6 +27,23 @@ export interface Post {
         lastName: string;
         role: UserRole;
     };
+    attachments?: Array<{
+        id: number;
+        url: string;
+        filename: string;
+        mimeType: string;
+        size: number;
+    }>;
+    comments?: Array<{
+        id: number;
+        content: string;
+        createdAt: string;
+        author: {
+            id: number;
+            firstName: string;
+            lastName: string;
+        };
+    }>;
 }
 
 export interface LoginCredentials {

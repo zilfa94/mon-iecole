@@ -1,11 +1,12 @@
 import type { Post as PostType } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Pin } from 'lucide-react';
+import { Pin, FileText, Download, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
+import { CommentSection } from '@/components/CommentSection';
 
 interface PostCardProps {
     post: PostType;
@@ -91,8 +92,39 @@ export function PostCard({ post }: PostCardProps) {
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
                 <p className="text-sm whitespace-pre-wrap">{post.content}</p>
+
+                {/* Attachments Display */}
+                {post.attachments && post.attachments.length > 0 && (
+                    <div className="space-y-2">
+                        <p className="text-xs font-medium text-gray-600">Pièces jointes :</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            {post.attachments.map((attachment: any) => (
+                                <a
+                                    key={attachment.id}
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50 transition-colors"
+                                >
+                                    {attachment.mimeType.startsWith('image/') ? (
+                                        <ImageIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                    ) : (
+                                        <FileText className="h-4 w-4 text-red-600 flex-shrink-0" />
+                                    )}
+                                    <span className="text-xs truncate flex-1">{attachment.filename}</span>
+                                    <Download className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Comments Section */}
+                {post.comments && (
+                    <CommentSection postId={post.id} comments={post.comments} />
+                )}
             </CardContent>
         </Card>
     );

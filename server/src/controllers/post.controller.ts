@@ -20,14 +20,25 @@ export class PostController {
                 return res.status(400).json({ error: 'Content is required' });
             }
 
-            // 3. Create post
+            // 3. Get uploaded files from middleware (if any)
+            const uploadedFiles = (req as any).uploadedFiles || [];
+
+            // 4. Create post with attachments
             const newPost = await prisma.post.create({
                 data: {
                     authorId: req.user!.id,
                     content,
                     type, // Validated above
                     isPinned: isPinned || false,
-                    classId: classId ? parseInt(classId) : null
+                    classId: classId ? parseInt(classId) : null,
+                    attachments: {
+                        create: uploadedFiles.map((file: any) => ({
+                            url: file.url,
+                            filename: file.filename,
+                            mimeType: file.mimeType,
+                            size: file.size
+                        }))
+                    }
                 },
                 include: {
                     author: {
@@ -37,7 +48,8 @@ export class PostController {
                             lastName: true,
                             role: true
                         }
-                    }
+                    },
+                    attachments: true
                 }
             });
 
@@ -122,6 +134,7 @@ export class PostController {
                     class: {
                         select: { name: true }
                     },
+                    attachments: true,
                     comments: {
                         include: {
                             author: {
@@ -131,7 +144,8 @@ export class PostController {
                                     lastName: true
                                 }
                             }
-                        }
+                        },
+                        orderBy: { createdAt: 'asc' }
                     }
                 },
                 orderBy: [
@@ -142,6 +156,48 @@ export class PostController {
             return res.json(posts);
         } catch (error) {
             console.error('List posts error:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+
+    // Create a comment on a post
+    static async createComment(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const { content } = req.body;
+
+            // 1. Validate content
+            if (!content || content.trim().length === 0) {
+                return res.status(400).json({ error: 'Comment content is required' });
+            }
+
+            // 2. Create comment
+            const comment = await prisma.comment.create({
+                data: {
+                    postId: parseInt(id),
+                    authorId: req.user!.id,
+                    content: content.trim()
+                },
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            role: true
+                        }
+                    }
+                }
+            });
+
+            return res.status(201).json(comment);
+
+        } catch (error) {
+            console.error('Create comment error:', error);
+            // Handle post not found
+            if ((error as any).code === 'P2003') {
+                return res.status(404).json({ error: 'Post not found' });
+            }
             return res.status(500).json({ error: 'Internal server error' });
         }
     }

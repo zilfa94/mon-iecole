@@ -246,12 +246,12 @@ export function PostCard({ post }: PostCardProps) {
                 {/* Engagement Stats (Optional) */}
                 <div className="px-4 py-2 flex justify-between items-center text-xs text-gray-500">
                     <div className="flex items-center gap-1">
-                        {post.likesCount > 0 && (
+                        {(post.likesCount || 0) > 0 && (
                             <>
                                 <div className="bg-primary p-1 rounded-full text-white">
                                     <ThumbsUp className="h-2 w-2 fill-current" />
                                 </div>
-                                <span>{post.likesCount}</span>
+                                <span>{post.likesCount || 0}</span>
                             </>
                         )}
                     </div>

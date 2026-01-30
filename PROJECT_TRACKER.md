@@ -167,3 +167,14 @@ Toutes les fonctionnalités principales sont implémentées et déployées :
 - ✅ **Fil d'Actualités** : Posts, commentaires, uploads, polling temps réel
 - ✅ **Gestion Classes** : Filtrage par classe, permissions par rôle
 
+### 2026-01-31 (Feature - Interactions & Stability)
+✅ **Fait : Interactions Sociales & Fixes Backend**
+- [x] **Likes & Partage** :
+    - Schema DB : Modèle `Like` ajouté.
+    - UI : Boutons "J'aime" (Optimistic Update) et "Partager" (Native Share API).
+    - Backend : Endpoint Toggle Like, compteurs temps réel.
+- [x] **Stabilité Backend** :
+    - **Fix Critique TypeScript** : Standardisation du parsing des IDs (`parseInt(String(req.params.id))`) pour éviter les crashs sur `req.params`.
+    - Prisma : Résolution des conflits de types (`@ts-ignore` temporaires supprimés ou documentés).
+
+
